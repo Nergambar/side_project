@@ -1,2 +1,6 @@
 scene: 1
 Name: a
+
+wardrobe: empty
+
+stuff: empty
