@@ -4,11 +4,30 @@
 #include <vector>
 #include <cstdio>
 
+
 #include "player.hpp"
+class pc;
 
 bool starts_with(const std::string& s, const std::string& prefix) {
     return s.size() >= prefix.size() &&
            s.compare(0, prefix.size(), prefix) == 0;
+}
+
+std::string find_line(std::string filename, std::string target)
+{
+    std::ifstream infile(filename.c_str());
+    if (!infile) return NULL;
+
+    std::vector<std::string> lines;
+    std::string line;
+
+    // Read all lines
+    while (std::getline(infile, line)) {
+        if (line == target || starts_with(line, target))
+            return (line);        
+    }
+    infile.close();
+    return NULL;
 }
 
 bool replace_line_in_file(const std::string& filename,
@@ -77,6 +96,7 @@ void checkplayer(pc &p)
     std::cout << p.get_rep() << std::endl;
     std::cout << p.get_aff() << std::endl;
     std::cout << p.get_friend() << std::endl;
+    std::cout << "scene number = " << p.scene << std::endl;
 }
 
 
@@ -94,7 +114,7 @@ int main()
         std::cout << "file deleted";}
     if (!if_closed(fname))
         f.close();
-    // input.clear();
+    player.scene = check_scene(&player);
     std::ifstream fread(fname.c_str());
     std::string line;
     std::getline(fread, line);
@@ -105,6 +125,12 @@ int main()
 
     std::ifstream display(fname.c_str());
     while (std::getline(display, line))
+    {
+        if (starts_with(line, "scene: ")){
+            scenes(&player);
+            continue;
+        }
         std::cout << line << std::endl;
+    }
     checkplayer(player);
 }

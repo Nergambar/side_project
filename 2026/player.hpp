@@ -18,6 +18,7 @@ class pc{
         rangedInt affection;
         rangedInt friendliness; //could be affected greatly by reputation changed but not the opposite?
     public:
+        int scene;
         pc() : reputation(0, 0, 20), affection(0, 0, 20), friendliness(0,0,20) {}
         void set_name(std::string name)
         {

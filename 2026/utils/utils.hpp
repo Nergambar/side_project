@@ -8,45 +8,19 @@
 #include <cstdio>
 #include <algorithm>
 
-class rangedInt {
-private:
-    int min_val;
-    int max_val;
-    int value;
-    int clamp(int v) {
-        if (v < min_val) return min_val;
-        if (v > max_val) return max_val;
-        return v;
-    }
-public:
-    rangedInt(int v, int minv, int maxv)
-        : min_val(minv), max_val(maxv), value(clamp(v)) {}
+#include "rangedInt.hpp"
+class pc;
 
-    // Assignment
-    rangedInt& operator=(int v) {
-        value = clamp(v);
-        return *this;
-    }
+void scenes(pc *player);
+std::string find_line(std::string filename, std::string target);
+bool    starts_with(const std::string& s, const std::string& prefix);
+bool    if_closed(std::string &fname);
+void    set_name(pc &player, std::string &fname, std::string line);
+void    checkplayer(pc &p);
+bool    replace_line_in_file(const std::string& filename,
+                          const std::string& target,
+                          const std::string& replacement);
+int check_scene(pc *player);
 
-    // Addition
-    rangedInt& operator+=(int v) {
-        value = clamp(value + v);
-        return *this;
-    }
-
-    // Subtraction
-    rangedInt& operator-=(int v) {
-        value = clamp(value - v);
-        return *this;
-    }
-
-    // Implicit conversion to int
-    operator int() const { return value; }
-};
-
-
-int check_scene(){
-    std::fstream f("./datas/player_data.txt");
-}
 
 #endif
