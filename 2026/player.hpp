@@ -28,6 +28,9 @@ class pc{
         rangedInt get_aff() {return (affection);}
         rangedInt get_friend() {return (friendliness);}
         std::string get_name() {return (name);}
+        void set_rep(rangedInt rep) {reputation = rep;}
+        void set_aff(rangedInt aff) {affection = aff;}
+        void set_friend(rangedInt f) { friendliness = f;}
 };
 
 

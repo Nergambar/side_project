@@ -4,59 +4,51 @@
 #include <vector>
 #include <cstdio>
 
-
 #include "player.hpp"
 class pc;
+
+std::string find_line(std::string filename, std::string target)
+{
+    std::ifstream infile(filename.c_str());
+    if (!infile) return "";
+
+    std::vector<std::string> lines;
+    std::string line;
+
+    // Read all lines
+    while (std::getline(infile, line))
+    {
+        if (line.find(target) != std::string::npos)
+            return (line);
+    }
+
+    infile.close();
+    return "";
+}
+
 
 bool starts_with(const std::string& s, const std::string& prefix) {
     return s.size() >= prefix.size() &&
            s.compare(0, prefix.size(), prefix) == 0;
 }
 
-std::string find_line(std::string filename, std::string target)
+int writein(std::string &fname)
 {
-    std::ifstream infile(filename.c_str());
-    if (!infile) return NULL;
-
-    std::vector<std::string> lines;
-    std::string line;
-
-    // Read all lines
-    while (std::getline(infile, line)) {
-        if (line == target || starts_with(line, target))
-            return (line);        
+    std::ofstream create(fname.c_str());
+    if (!create){
+        std::cerr << "could not create player_data.json\n";
+        return(1);
     }
-    infile.close();
-    return NULL;
-}
-
-bool replace_line_in_file(const std::string& filename,
-                          const std::string& target,
-                          const std::string& replacement)
-{
-    std::ifstream infile(filename.c_str());
-    if (!infile) return false;
-
-    std::vector<std::string> lines;
-    std::string line;
-
-    // Read all lines
-    while (std::getline(infile, line)) {
-        if (line == target)
-            lines.push_back(replacement); // replace
-        else
-            lines.push_back(line);        // keep
-    }
-    infile.close();
-
-    // Rewrite file
-    std::ofstream outfile(filename.c_str(), std::ios::trunc);
-    if (!outfile) return false;
-
-    for (std::vector<std::string>::iterator l = lines.begin(); l < lines.end(); l++)
-        outfile << *l << '\n';
-
-    return true;
+    create << "{\n";
+    create << "  \"name\": \"\",\n";
+    create << "  \"scene\": \"intro 0\",\n";
+    create << "  \"reputation\": 0,\n";
+    create << "  \"affection\": 0,\n";
+    create << "  \"friendliness\": 0\n";
+    create << "}";
+    create.close();
+    std::cout << "file created\n";
+    return (1);
 }
 
 bool    if_closed(std::string &fname){
@@ -64,30 +56,24 @@ bool    if_closed(std::string &fname){
     std::ifstream f(fname.c_str());
     if (!f.is_open())
     {
-        std::ofstream create(fname.c_str());
-        if (!create){
-            std::cerr << "could not create player_data.txt\n";
-            return(1);
-        }
-        create << "scene: intro\n";
-        create << "Name:\n";
-        create.close();
-        std::cout << "file created\n";
-        return(1);
+        return(writein(fname));
     }
     return (0);
 }
 
-void set_name(pc &player, std::string &fname, std::string line)
-{
-    if (line == "Name:") {
-        std::cout << "No name given.\r\nEnter your name: " << std::flush;
-        std::string input;
-        std::ifstream tty("/dev/tty"); // read directly from terminal
-        tty >> input;
-        player.set_name(input);
-        replace_line_in_file(fname, "Name:", "Name: " + input);
-    }
+void set_name(pc &player, const std::string &fname) {
+    std::string input;
+    std::cout << "No name given." << std::endl;
+    std::cout << "Enter your name: " << std::flush;
+    
+    // Get the name from the user
+    std::cin >> input; 
+    player.set_name(input);
+
+    // Now just call the save function to overwrite the file with the new data
+    save_player(fname, player);
+    
+    std::cout << "Player data updated!" << std::endl;
 }
 
 void checkplayer(pc &p)
@@ -100,37 +86,30 @@ void checkplayer(pc &p)
 }
 
 
-int main()
-{
-    pc player   ;
-    std::string input;
-    std::cin >> input;
-    std::string fname = "./datas/player_data.txt";   
-    std::ifstream f(fname.c_str());
 
-    if (input == "reset"){
-        if (std::remove(fname.c_str()))
-            return(std::cerr << "error deleting file", -611);
-        std::cout << "file deleted";}
-    if (!if_closed(fname))
-        f.close();
-    player.scene = check_scene(&player);
-    std::ifstream fread(fname.c_str());
-    std::string line;
-    std::getline(fread, line);
-    std::getline(fread, line);
-    fread.close();
+int main() {
+    pc player;
+    std::string fname = "./datas/player_data.json";
+    
+    // 1. If the file doesn't exist at all, create an empty JSON structure
+    if_closed(fname); 
 
-    set_name(player, fname, line);
+    // 2. LOAD the existing data from the file into our 'player' object
+    load_player(fname, player);
 
-    std::ifstream display(fname.c_str());
-    while (std::getline(display, line))
-    {
-        if (starts_with(line, "scene: ")){
-            scenes(&player);
-            continue;
-        }
-        std::cout << line << std::endl;
+    // 3. ONLY ask for a name if the player object's name is still empty
+    if (player.get_name() == "" || player.get_name() == "None") {
+        set_name(player, fname);
+    } else {
+        std::cout << "Welcome back, " << player.get_name() << "!" << std::endl;
+        player.scene = check_scene(&player);
+        if (player.scene == 0)
+            player.scene = 0;
+
     }
+
+    // 4. Update the screen
     checkplayer(player);
+
+    return 0;
 }
